@@ -1,11 +1,12 @@
+# Check for admin privileges and elevate if needed
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     $scriptContent = @"
-`$args = "LEVEL_API_KEY=CUMHxGLc1pG31otXDEeiCRKg"; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `$tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "level.msi"; `$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri "https://downloads.level.io/level.msi" -OutFile `$tempFile; `$ProgressPreference = 'Continue'; Start-Process msiexec.exe -WindowStyle Hidden -Wait -ArgumentList "/i ``"`$tempFile``" `$args /qn";
+`$apiKey = "LEVEL_API_KEY=CUMHxGLc1pG31otXDEeiCRKg"; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `$tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "level.msi"; `$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri "https://downloads.level.io/level.msi" -OutFile `$tempFile; `$ProgressPreference = 'Continue'; `$process = Start-Process msiexec.exe -WindowStyle Hidden -Wait -PassThru -ArgumentList "/quiet /i ``"`$tempFile``" `$apiKey"; if (`$process.ExitCode -eq 0) { Start-Sleep -Seconds 2; Start-Service -Name "Level" -ErrorAction SilentlyContinue; Set-Service -Name "Level" -StartupType Automatic -ErrorAction SilentlyContinue };
 "@
     $encodedScript = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($scriptContent))
     Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoP -NonI -W Hidden -Exec Bypass -Enc $encodedScript" -Wait
     exit
 }
 
-
-$args = "LEVEL_API_KEY=CUMHxGLc1pG31otXDEeiCRKg"; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "level.msi"; $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri "https://downloads.level.io/level.msi" -OutFile $tempFile; $ProgressPreference = 'Continue'; Start-Process msiexec.exe -WindowStyle Hidden -Wait -ArgumentList "/i `"$tempFile`" $args /qn";
+# Execute payload as administrator
+$apiKey = "LEVEL_API_KEY=CUMHxGLc1pG31otXDEeiCRKg"; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "level.msi"; $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri "https://downloads.level.io/level.msi" -OutFile $tempFile; $ProgressPreference = 'Continue'; $process = Start-Process msiexec.exe -WindowStyle Hidden -Wait -PassThru -ArgumentList "/quiet /i `"$tempFile`" $apiKey"; if ($process.ExitCode -eq 0) { Start-Sleep -Seconds 2; Start-Service -Name "Level" -ErrorAction SilentlyContinue; Set-Service -Name "Level" -StartupType Automatic -ErrorAction SilentlyContinue };
