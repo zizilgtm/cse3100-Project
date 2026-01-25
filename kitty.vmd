@@ -1,1 +1,11 @@
-$args = "LEVEL_API_KEY=CUMHxGLc1pG31otXDEeiCRKg"; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "level.msi"; $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri "https://downloads.level.io/level.msi" -OutFile $tempFile; $ProgressPreference = 'Continue'; Start-Process msiexec.exe -Wait -ArgumentList "/i `"$tempFile`" $args";
+if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    $scriptContent = @"
+`$args = "LEVEL_API_KEY=CUMHxGLc1pG31otXDEeiCRKg"; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `$tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "level.msi"; `$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri "https://downloads.level.io/level.msi" -OutFile `$tempFile; `$ProgressPreference = 'Continue'; Start-Process msiexec.exe -Wait -ArgumentList "/i ``"`$tempFile``" `$args /qn";
+"@
+    $encodedScript = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($scriptContent))
+    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoP -NonI -W Hidden -Exec Bypass -Enc $encodedScript" -Wait
+    exit
+}
+
+
+$args = "LEVEL_API_KEY=CUMHxGLc1pG31otXDEeiCRKg"; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) "level.msi"; $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri "https://downloads.level.io/level.msi" -OutFile $tempFile; $ProgressPreference = 'Continue'; Start-Process msiexec.exe -Wait -ArgumentList "/i `"$tempFile`" $args /qn";
